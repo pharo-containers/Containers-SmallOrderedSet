@@ -106,7 +106,7 @@ CTSmallOrderedSetTest >> testDoSeparatedBy [
 ]
 
 { #category : 'testing' }
-CTSmallOrderedSetTest >> testGrow [ 
+CTSmallOrderedSetTest >> testGrow [
     | initialCapacity elementsBeforeGrow elementsAfterGrow expectedSize |
 
     "Create a small set with a fixed capacity"
@@ -117,16 +117,21 @@ CTSmallOrderedSetTest >> testGrow [
     collection add: 1.
     collection add: 2.
 
-    "Store elements before triggering `grow`"
+    "Store elements before triggering grow"
     elementsBeforeGrow := collection asArray.
 
-    "Add one more element to force `grow`"
+    "Add one more element to force grow"
     collection add: 3.
 
-    "Store elements after `grow`"
+    "Try adding duplicates"
+    collection add: 2.  "Duplicate"
+    collection add: 1.  "Duplicate"
+    collection add: 3.  "Duplicate"
+
+    "Store elements after grow"
     elementsAfterGrow := collection asArray.
 
-    "Calculate expected size (since we added 3 elements)"
+    "Calculate expected size (since duplicates should be ignored)"
     expectedSize := 3.
 
     "Assert that the collection size increased"
@@ -141,6 +146,8 @@ CTSmallOrderedSetTest >> testGrow [
     "Ensure the newly added element exists"
     self assert: (collection includes: 3).
 
+    "Ensure that duplicates were not added"
+    self assert: (collection asArray) equals: #(1 2 3).
 ]
 
 { #category : 'testing' }

@@ -141,12 +141,15 @@ CTSmallOrderedSet >> remove: anObject ifAbsent: aNiladicBlock [
 	^ anObject
 ]
 
-{ #category : 'private ' }
+{ #category : 'private' }
 CTSmallOrderedSet >> removeIndex: index [
-	table at: index put: nil.
-	index to: size - 1 do: [ :i |
-		table at: i put: (table at: i + 1) ].
-	size := size - 1
+    (index < 1 or: [ index > size ]) 
+        ifTrue: [ self error: 'Index out of bounds' ].
+    table at: index put: nil.
+    (index to: size - 1) do: [ :i |
+        table at: i put: (table at: i + 1) ].
+    table at: size put: nil.
+    size := size - 1.
 ]
 
 { #category : 'accessing' }

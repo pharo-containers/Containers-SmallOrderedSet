@@ -259,6 +259,25 @@ CTSmallOrderedSetTest >> testInitialize [
 ]
 
 { #category : 'testing' }
+CTSmallOrderedSetTest >> testIsCollection [
+    | smallOrderedSet emptySet notCollectionObject |
+
+    "Create an instance of CTSmallOrderedSet"
+    smallOrderedSet := CTSmallOrderedSet new: 2.
+
+    "Test if the collection is recognized as a collection"
+    self assert: smallOrderedSet isCollection.
+
+    "Test for an empty CTSmallOrderedSet instance"
+    emptySet := CTSmallOrderedSet new: 0.
+    self assert: emptySet isCollection.
+
+    "Test a non-collection object"
+    notCollectionObject := Object new.
+    self assert: (notCollectionObject isCollection not).
+]
+
+{ #category : 'testing' }
 CTSmallOrderedSetTest >> testIsEmpty [
 	self assert: collection isEmpty.
 	collection add: 1.

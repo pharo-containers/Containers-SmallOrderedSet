@@ -208,7 +208,7 @@ CTSmallOrderedSetTest >> testWithAll [
     self assert: emptySet isEmpty.
 
     "Single Element Collection"
-    singleSet := CTSmallOrderedSet withAll: #(42).
+    singleSet := CTSmallOrderedSet withAll: #(42). 
     self assert: singleSet size equals: 1.
     self assert: (singleSet includes: 42).
 

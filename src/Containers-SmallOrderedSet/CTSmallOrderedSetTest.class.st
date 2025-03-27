@@ -123,3 +123,146 @@ CTSmallOrderedSetTest >> testSize [
 	collection addAll: #(2 1 1).
 	self assert: collection size equals: 2.
 ]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testWithAll [
+    | emptySet singleSet duplicateSet orderedSet mixedSet largeSet unorderedSet specialCharSet expected |
+
+    "Empty Collection Input"
+    emptySet := CTSmallOrderedSet withAll: #().
+    self assert: emptySet isEmpty.
+
+    "Single Element Collection"
+    singleSet := CTSmallOrderedSet withAll: #(42). 
+    self assert: singleSet size equals: 1.
+    self assert: (singleSet includes: 42).
+
+    "Collection With Only Duplicates"
+    duplicateSet := CTSmallOrderedSet withAll: #(7 7 7 7 7).
+    self assert: duplicateSet size equals: 1.
+    self assert: (duplicateSet includes: 7).
+
+    "Already Ordered Input"
+    orderedSet := CTSmallOrderedSet withAll: #(10 20 30).
+    expected := #(10 20 30).
+    self assert: orderedSet asArray equals: expected.
+
+    "Mixed Data Types"
+    mixedSet := CTSmallOrderedSet withAll: #(1 'a' 2 'b' 1 'a').
+    self assert: mixedSet size equals: 4.
+    self assert: (mixedSet includes: 1).
+    self assert: (mixedSet includes: 'a').
+    self assert: (mixedSet includes: 2).
+    self assert: (mixedSet includes: 'b').
+
+    "Large Input Collection"
+    largeSet := CTSmallOrderedSet withAll: (1 to: 10000).
+    self assert: largeSet size equals: 10000.
+
+    "Unordered Input"
+    unorderedSet := CTSmallOrderedSet withAll: #(5 2 8 1 3).
+    self assert: unorderedSet asArray equals: #(5 2 8 1 3).
+
+    "Collection With Special Characters"
+    specialCharSet := CTSmallOrderedSet withAll: #('hello' 'world' 'hello!' 'world#').
+    self assert: specialCharSet size equals: 4.
+    self assert: (specialCharSet includes: 'hello!').
+    self assert: (specialCharSet includes: 'world#').
+
+]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testRemoveIndex [
+
+	| collectionSet |
+	"Create a set and add some elements"
+	collectionSet := CTSmallOrderedSet new: 5.
+	collectionSet add: 1.
+	collectionSet add: 2.
+	collectionSet add: 3.
+	collectionSet add: 4.
+
+	"Remove an element by index"
+	collectionSet removeIndex: 2.
+
+	
+	"Test that the collection size decreased"
+	self assert: collectionSet size equals: 3.
+	self assert: (collectionSet asArray) equals: #( 1 3 4 ).
+	"Test that the removed element is no longer in the collection"
+	self deny: (collectionSet includes: 2).
+
+	"Test removing from an empty set"
+	collectionSet := CTSmallOrderedSet new: 0.
+	self should: [ collectionSet removeIndex: 1 ] raise: Error.
+
+	"Test removing from an empty set with error message"
+	collectionSet := CTSmallOrderedSet new: 0.
+	
+
+	"Test removing the first index"
+	collectionSet := CTSmallOrderedSet new: 3.
+	collectionSet add: 1.
+	collectionSet add: 2.
+	collectionSet add: 3.
+	collectionSet removeIndex: 1.
+	self assert: collectionSet size equals: 2.
+	self assert: (collectionSet asArray) equals: #( 2 3 ).
+
+	"Test removing the last index"
+	collectionSet := CTSmallOrderedSet new: 3.
+	collectionSet add: 1.
+	collectionSet add: 2.
+	collectionSet add: 3.
+	collectionSet removeIndex: 3.
+	self assert: collectionSet size equals: 2.
+	self assert: (collectionSet asArray) equals: #( 1 2 ).
+
+	"Test removing an index out of bounds"
+	collectionSet := CTSmallOrderedSet new: 3.
+	collectionSet add: 1.
+	collectionSet add: 2.
+	collectionSet add: 3.
+	self should: [ collectionSet removeIndex: 4 ] raise: Error.
+
+	"Test removing the only element in the set"
+	collectionSet := CTSmallOrderedSet new: 1.
+	collectionSet add: 1.
+	collectionSet removeIndex: 1.
+	self assert: collectionSet isEmpty.
+	self assert: collectionSet size equals: 0
+]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testInitialize [
+    | defaultSet customSet zeroCapacitySet initialCapacity |
+
+    "Test default initialization"
+    defaultSet := CTSmallOrderedSet new.
+    self assert: defaultSet isEmpty.
+    self assert: defaultSet size equals: 0. "Ensure it's empty upon creation"
+
+    "Test custom capacity initialization"
+    initialCapacity := 5.
+    customSet := CTSmallOrderedSet new: initialCapacity.
+    self assert: customSet isEmpty.
+
+    "Ensure elements can be added up to initial capacity"
+    customSet addAll: (1 to: initialCapacity).
+    self assert: customSet size equals: initialCapacity.
+
+    "Ensure set expands beyond initial capacity"
+    customSet add: initialCapacity + 1.
+    self assert: customSet size equals: initialCapacity + 1.
+
+    "Test zero-capacity initialization (should still allow adding elements)"
+    zeroCapacitySet := CTSmallOrderedSet new: 0.
+    self assert: zeroCapacitySet isEmpty.  "Initially empty"
+    
+    "Ensure elements can be added even if initially zero capacity"
+    zeroCapacitySet add: 1.
+    zeroCapacitySet add: 2.
+    self assert: zeroCapacitySet size equals: 2.
+    self assert: (zeroCapacitySet includes: 1).
+    self assert: (zeroCapacitySet includes: 2).
+]

@@ -82,7 +82,7 @@ CTSmallOrderedSet >> findIndexFor: aKey [
 ]
 
 { #category : 'private' }
-CTSmallOrderedSet >> grow [ 
+CTSmallOrderedSet >> grow [
     | newTable newSize |
     newSize := (table isEmpty) ifTrue: [1] ifFalse: [2 * table size]. "Ensure it grows from 0"
     newTable := Array new: newSize.
@@ -142,15 +142,14 @@ CTSmallOrderedSet >> remove: anObject ifAbsent: aNiladicBlock [
 ]
 
 { #category : 'private' }
-CTSmallOrderedSet >> removeIndex: index [ 
+CTSmallOrderedSet >> removeIndex: index [
     (index < 1 or: [ index > size ]) 
         ifTrue: [ self error: 'Index out of bounds' ].
     table at: index put: nil.
-    index to: size - 1 do: [ :i |
+    (index to: size - 1) do: [ :i |
         table at: i put: (table at: i + 1) ].
     table at: size put: nil.
     size := size - 1.
-
 ]
 
 { #category : 'accessing' }

@@ -232,3 +232,26 @@ CTSmallOrderedSetTest >> testRemoveIndex [
 	self assert: collectionSet isEmpty.
 	self assert: collectionSet size equals: 0
 ]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testDoSeparatedBy [
+    | seen |
+
+    "Add elements manually, including duplicates"
+    collection add: 2.
+    collection add: 1.
+    collection add: 3.
+    collection add: 2.  "Duplicate"
+    collection add: 1.  "Duplicate"
+
+    "Verify that collection size is correct (duplicates should not be counted)"
+    self assert: collection size equals: 3.
+
+    "Iterate over the collection, inserting separators"
+    seen := Array streamContents: [ :stream |
+        collection do: [ :each | stream nextPut: each ] 
+                  separatedBy: [ stream nextPut: '-' ] ].
+
+    "Ensure separators are added correctly and duplicates are not present"
+    self assert: seen equals: #(2 '-' 1 '-' 3).
+]

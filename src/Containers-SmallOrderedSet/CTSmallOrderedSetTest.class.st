@@ -1,156 +1,129 @@
-"
-I am an implementation of an ordered set. Compared to other sets I am very efficient for small sizes, speed- and space-wise. I also mantain the order in which elements are added when iterating.
-"
 Class {
-	#name : #CTSmallOrderedSet,
-	#superclass : #Object,
+	#name : #CTSmallOrderedSetTest,
+	#superclass : #TestCase,
 	#instVars : [
-		'size',
-		'table'
+		'collection'
 	],
 	#category : #'Containers-SmallOrderedSet'
 }
 
-{ #category : #'instance creation' }
-CTSmallOrderedSet class >> new [
-	^ self new: 3
+{ #category : #configuration }
+CTSmallOrderedSetTest >> collectionClass [
+	^ CTSmallOrderedSet
 ]
 
-{ #category : #'instance creation' }
-CTSmallOrderedSet class >> new: anInteger [
-	^ self basicNew initialize: anInteger; yourself
-]
-
-{ #category : #'instance creation' }
-CTSmallOrderedSet class >> withAll: aDictionary [
-	^ (self new: aDictionary size)
-		addAll: aDictionary;
-		yourself
-]
-
-{ #category : #adding }
-CTSmallOrderedSet >> add: newObject [
-	(self findIndexFor: newObject) = 0
-		ifTrue: [ self privateAdd: newObject ].
-	^ newObject
-]
-
-{ #category : #adding }
-CTSmallOrderedSet >> addAll: aCollection [
-	aCollection do: [ :each |
-		self add: each ].
-	^ aCollection
-]
-
-{ #category : #converting }
-CTSmallOrderedSet >> asArray [
- 	| array index | 
-	array := Array new: self size.
-	index := 1.
-	self do: [ :each | 
-					array at: index put: each.
-					index := index + 1 ].
-				
-	^ array
-]
-
-{ #category : #enumerating }
-CTSmallOrderedSet >> do: aOneArgumentBlock [
-	1 to: size do: [ :i |
-		aOneArgumentBlock value: (table at: i) ]
-]
-
-{ #category : #enumerating }
-CTSmallOrderedSet >> do: aOneArgumentBlock separatedBy: aNiladicBlock [
-	1 to: size do: [ :i |
-		i > 1 ifTrue: [ aNiladicBlock value ].
-		aOneArgumentBlock value: (table at: i) ]
-]
-
-{ #category : #'private ' }
-CTSmallOrderedSet >> errorNotFound [
-	self error: 'Not found'
-]
-
-{ #category : #'private ' }
-CTSmallOrderedSet >> findIndexFor: aKey [
-	1 to: size do: [ :index |
-		(table at: index) = aKey
-			ifTrue: [ ^ index ] ].
-	^ 0
-]
-
-{ #category : #'private ' }
-CTSmallOrderedSet >> grow [
-	| newTable |
-	"#replaceFrom:to:with:startingAt: would be better but not portable"
-	newTable := Array new: 2 * size.
-	1 to: size do: [ :index |
-		newTable at: index put: (table at: index) ].
-	table := newTable
+{ #category : #running }
+CTSmallOrderedSetTest >> setUp [
+	super setUp.
+	collection := CTSmallOrderedSet new
 ]
 
 { #category : #testing }
-CTSmallOrderedSet >> includes: anObject [
-	^ (self findIndexFor: anObject) ~= 0
-]
-
-{ #category : #initialization }
-CTSmallOrderedSet >> initialize: anInteger [
-	self initialize.
-	size := 0.
-	table := Array new: anInteger
-]
-
-{ #category : #testing }
-CTSmallOrderedSet >> isCollection [
-	^ true
+CTSmallOrderedSetTest >> testAdd [
+	| object |
+	object := Object new.
+	self assert: collection size equals: 0.
+	self assert: (collection add: object) equals: object.
+	self assert: collection size equals: 1.
+	self assert: (collection add: object) equals: object
 ]
 
 { #category : #testing }
-CTSmallOrderedSet >> isEmpty [
-	^ size = 0
+CTSmallOrderedSetTest >> testAddAll [
+	collection addAll: #(2 1 1).
+	self assert: collection size equals: 2.
+	self assert: (collection includes: 1).
+	self assert: (collection includes: 2)
 ]
 
-{ #category : #copying }
-CTSmallOrderedSet >> postCopy [
-	super postCopy.
-	table := table copy
+{ #category : #testing }
+CTSmallOrderedSetTest >> testAddAllKeepsOrder [
+	collection addAll: #(2 1 1 3 4 5 5 5 6).
+	self assert: collection size equals: 6.
+	self assert: collection asArray equals: #(2 1 3 4 5 6).
 ]
 
-{ #category : #'private ' }
-CTSmallOrderedSet >> privateAdd: newObject [
-	size = table size ifTrue: [ self grow ].
-	table at: (size := size + 1) put: newObject.
+{ #category : #testing }
+CTSmallOrderedSetTest >> testAsArray [
+	collection addAll: #(2 1 1).
+	self assert: collection asArray equals: #(2 1).
 ]
 
-{ #category : #removing }
-CTSmallOrderedSet >> remove: anObject [
-	^ self remove: anObject ifAbsent: [ self errorNotFound ]
+{ #category : #testing }
+CTSmallOrderedSetTest >> testAsArrayWithStrangeOrder [
+	collection addAll: #(2 1 3 2 1).
+	self assert: collection asArray equals: #(2 1 3).
 ]
 
-{ #category : #removing }
-CTSmallOrderedSet >> remove: anObject ifAbsent: aNiladicBlock [
-	| index |
-	index := self findIndexFor: anObject.
-	index = 0
-		ifTrue: [ ^ aNiladicBlock value ]
-		ifFalse: [ self removeIndex: index ].
-	^ anObject
+{ #category : #testing }
+CTSmallOrderedSetTest >> testCopy [
+	| copy |
+	collection add: 1.
+	copy := collection copy.
+	collection add: 2.
+	
+	self assert: collection size equals: 2.
+	self assert: copy size equals: 1.
+	
+	self assert: (collection includes: 2).
+	self deny: (copy includes: 2).
 ]
 
-{ #category : #'private ' }
-CTSmallOrderedSet >> removeIndex: index [
-	table at: index put: nil.
-	index to: size - 1 do: [ :i |
-		table at: i put: (table at: i + 1) ].
-	size := size - 1
+{ #category : #testing }
+CTSmallOrderedSetTest >> testDo [
+	| seen |
+	collection addAll: #(2 1 1).
+	seen := Array streamContents: [ :stream |
+		collection do: [ :each |
+			stream nextPut: each ] ].
+	self assert: seen size equals: 2.
+	self assert: (seen at: 1) equals: 2.
+	self assert: (seen at: 2) equals: 1
 ]
 
-{ #category : #accessing }
-CTSmallOrderedSet >> size [
-	^ size
+{ #category : #testing }
+CTSmallOrderedSetTest >> testIncludes [
+	self deny: (collection includes: 0).
+	collection add: 0.
+	self assert: (collection includes: 0)
 ]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testIsEmpty [
+	self assert: collection isEmpty.
+	collection add: 1.
+	self deny: collection isEmpty.
+	collection remove: 1.
+	self assert: collection isEmpty
+]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testRemove [
+	collection add: 1.
+	self assert: (collection remove: 1) equals: 1.
+	self should: [ collection remove: 1 ] raise: Error
+]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testRemoveIfAbsent [
+	| absent |
+	collection add: 1.
+	absent := false.
+	
+	self assert: (collection remove: 1 ifAbsent: [ absent := true ]) equals: 1.
+	self deny: absent.
+	
+	collection remove: 1 ifAbsent: [ absent := true ].
+	self assert: absent.
+]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testSize [
+	self assert: collection size equals: 0.
+	collection addAll: #(2 1 1).
+	self assert: collection size equals: 2.
+]
+
 { #category : #testing }
 CTSmallOrderedSetTest >> testWithAll [
     | emptySet singleSet duplicateSet orderedSet mixedSet largeSet unorderedSet specialCharSet expected |

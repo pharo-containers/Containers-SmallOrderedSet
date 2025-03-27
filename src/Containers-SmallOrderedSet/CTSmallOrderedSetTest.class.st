@@ -123,3 +123,149 @@ CTSmallOrderedSetTest >> testSize [
 	collection addAll: #(2 1 1).
 	self assert: collection size equals: 2.
 ]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testWithAll [
+    | emptySet singleSet duplicateSet orderedSet mixedSet largeSet unorderedSet specialCharSet expected |
+
+    "Empty Collection Input"
+    emptySet := CTSmallOrderedSet withAll: #().
+    self assert: emptySet isEmpty.
+
+    "Single Element Collection"
+    singleSet := CTSmallOrderedSet withAll: #(42). 
+    self assert: singleSet size equals: 1.
+    self assert: (singleSet includes: 42).
+
+    "Collection With Only Duplicates"
+    duplicateSet := CTSmallOrderedSet withAll: #(7 7 7 7 7).
+    self assert: duplicateSet size equals: 1.
+    self assert: (duplicateSet includes: 7).
+
+    "Already Ordered Input"
+    orderedSet := CTSmallOrderedSet withAll: #(10 20 30).
+    expected := #(10 20 30).
+    self assert: orderedSet asArray equals: expected.
+
+    "Mixed Data Types"
+    mixedSet := CTSmallOrderedSet withAll: #(1 'a' 2 'b' 1 'a').
+    self assert: mixedSet size equals: 4.
+    self assert: (mixedSet includes: 1).
+    self assert: (mixedSet includes: 'a').
+    self assert: (mixedSet includes: 2).
+    self assert: (mixedSet includes: 'b').
+
+    "Large Input Collection"
+    largeSet := CTSmallOrderedSet withAll: (1 to: 10000).
+    self assert: largeSet size equals: 10000.
+
+    "Unordered Input"
+    unorderedSet := CTSmallOrderedSet withAll: #(5 2 8 1 3).
+    self assert: unorderedSet asArray equals: #(5 2 8 1 3).
+
+    "Collection With Special Characters"
+    specialCharSet := CTSmallOrderedSet withAll: #('hello' 'world' 'hello!' 'world#').
+    self assert: specialCharSet size equals: 4.
+    self assert: (specialCharSet includes: 'hello!').
+    self assert: (specialCharSet includes: 'world#').
+
+]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testRemoveIndex [
+
+	| collectionSet |
+	"Create a set and add some elements"
+	collectionSet := CTSmallOrderedSet new: 5.
+	collectionSet add: 1.
+	collectionSet add: 2.
+	collectionSet add: 3.
+	collectionSet add: 4.
+
+	"Remove an element by index"
+	collectionSet removeIndex: 2.
+
+	
+	"Test that the collection size decreased"
+	self assert: collectionSet size equals: 3.
+	self assert: (collectionSet asArray) equals: #( 1 3 4 ).
+	"Test that the removed element is no longer in the collection"
+	self deny: (collectionSet includes: 2).
+
+	"Test removing from an empty set"
+	collectionSet := CTSmallOrderedSet new: 0.
+	self should: [ collectionSet removeIndex: 1 ] raise: Error.
+
+	"Test removing from an empty set with error message"
+	collectionSet := CTSmallOrderedSet new: 0.
+	
+
+	"Test removing the first index"
+	collectionSet := CTSmallOrderedSet new: 3.
+	collectionSet add: 1.
+	collectionSet add: 2.
+	collectionSet add: 3.
+	collectionSet removeIndex: 1.
+	self assert: collectionSet size equals: 2.
+	self assert: (collectionSet asArray) equals: #( 2 3 ).
+
+	"Test removing the last index"
+	collectionSet := CTSmallOrderedSet new: 3.
+	collectionSet add: 1.
+	collectionSet add: 2.
+	collectionSet add: 3.
+	collectionSet removeIndex: 3.
+	self assert: collectionSet size equals: 2.
+	self assert: (collectionSet asArray) equals: #( 1 2 ).
+
+	"Test removing an index out of bounds"
+	collectionSet := CTSmallOrderedSet new: 3.
+	collectionSet add: 1.
+	collectionSet add: 2.
+	collectionSet add: 3.
+	self should: [ collectionSet removeIndex: 4 ] raise: Error.
+
+	"Test removing the only element in the set"
+	collectionSet := CTSmallOrderedSet new: 1.
+	collectionSet add: 1.
+	collectionSet removeIndex: 1.
+	self assert: collectionSet isEmpty.
+	self assert: collectionSet size equals: 0
+]
+
+{ #category : #testing }
+CTSmallOrderedSetTest >> testPrivateAdd [
+    | collectionSet tableBefore tableAfter |
+
+    "Create a set with a small initial capacity to trigger `privateAdd:` execution sooner"
+    collectionSet := CTSmallOrderedSet new: 2.
+
+    "Ensure the collection is empty initially"
+    self assert: collectionSet isEmpty.
+
+    "Add two elements - should NOT trigger `grow`, but will invoke `privateAdd:`"
+    collectionSet add: 1.
+    collectionSet add: 2.
+
+    "Capture the table size before a forced growth"
+    tableBefore := collectionSet size.
+
+    "Force `privateAdd:` to trigger growth by adding a third element"
+    collectionSet add: 3.
+
+    "Verify that the collection has grown as expected"
+    tableAfter := collectionSet size.
+    self assert: tableAfter > tableBefore.  "Ensures `grow` was called by `privateAdd:`"
+
+    "Verify that all added elements are present and maintain their order"
+    self assert: (collectionSet asArray) equals: #(1 2 3).
+
+    "Ensure `privateAdd:` does not remove or overwrite existing elements"
+    self assert: (collectionSet includes: 1).
+    self assert: (collectionSet includes: 2).
+    self assert: (collectionSet includes: 3).
+
+    "Verify that `privateAdd:` alone does not handle duplicates (handled by `add:`)"
+    collectionSet add: 2.  "Attempt to add a duplicate"
+    self assert: collectionSet size equals: 3.  "Size remains unchanged as `add:` prevents duplicates"
+]

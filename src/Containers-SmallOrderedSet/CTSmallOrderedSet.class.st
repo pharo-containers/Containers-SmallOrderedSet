@@ -82,12 +82,12 @@ CTSmallOrderedSet >> findIndexFor: aKey [
 
 { #category : #'private ' }
 CTSmallOrderedSet >> grow [
-	| newTable |
-	"#replaceFrom:to:with:startingAt: would be better but not portable"
-	newTable := Array new: 2 * size.
-	1 to: size do: [ :index |
-		newTable at: index put: (table at: index) ].
-	table := newTable
+	| newTable newSize |
+    newSize := (table isEmpty) ifTrue: [1] ifFalse: [2 * table size]. "Ensure it grows from 0"
+    newTable := Array new: newSize.
+    1 to: size do: [ :index |
+        newTable at: index put: (table at: index) ].
+    table := newTable
 ]
 
 { #category : #testing }
@@ -141,10 +141,13 @@ CTSmallOrderedSet >> remove: anObject ifAbsent: aNiladicBlock [
 
 { #category : #'private ' }
 CTSmallOrderedSet >> removeIndex: index [
-	table at: index put: nil.
-	index to: size - 1 do: [ :i |
-		table at: i put: (table at: i + 1) ].
-	size := size - 1
+	(index < 1 or: [ index > size ]) 
+        ifTrue: [ self error: 'Index out of bounds' ].
+    table at: index put: nil.
+    (index to: size - 1) do: [ :i |
+        table at: i put: (table at: i + 1) ].
+    table at: size put: nil.
+    size := size - 1.
 ]
 
 { #category : #accessing }

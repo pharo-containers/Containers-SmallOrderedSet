@@ -91,7 +91,6 @@ CTSmallOrderedSet >> grow [
 
 ]
 
-
 { #category : #testing }
 CTSmallOrderedSet >> includes: anObject [
 	^ (self findIndexFor: anObject) ~= 0
@@ -141,7 +140,7 @@ CTSmallOrderedSet >> remove: anObject ifAbsent: aNiladicBlock [
 	^ anObject
 ]
 
- #category : #'private' }
+{ #category : #'private' }
 CTSmallOrderedSet >> removeIndex: index [
     (index < 1 or: [ index > size ]) 
         ifTrue: [ self error: 'Index out of bounds' ].
@@ -151,7 +150,6 @@ CTSmallOrderedSet >> removeIndex: index [
     table at: size put: nil.
     size := size - 1.
 ]
-
 
 { #category : #accessing }
 CTSmallOrderedSet >> size [
